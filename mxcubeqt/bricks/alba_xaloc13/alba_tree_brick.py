@@ -78,42 +78,15 @@ class AlbaTreeBrick(TreeBrick):
     def pick(self):
         if HWR.beamline.sample_changer is not None:
             pass
-            #if not items[0].get_model().free_pin_mode:
-                #HWR.beamline.sample_changer.mount_and_pick = True
-                ## now find the next sample. Possible useful functions are
-                ## dc_tree_widget get_mounted_sample_item, samples_from_lims
-                ## HWR ISPyBClient __find_sample
-                
-                
-                    #lid = HWR.beamline.sample_changer.cats_loaded_lid
-                    #sample = HWR.beamline.sample_changer.cats_loaded_num
-                    #sample2 = HWR.beamline.sample_changer.chnPickedSample.getValue()
-                    #self.logger.info("do_pick: Lid={}, sample={}, sample2={}".format(lid, sample, sample2))
-                #items[0].setText(1, "Loading sample...")
-                #self.sample_centring_result = gevent.event.AsyncResult()
-                #try:
-                    #if self.show_sc_during_mount:
-                        #self.tree_brick.sample_mount_started.emit()
-                    #queue_entry.mount_sample(
-                        #items[0],
-                        #items[0].get_model(),
-                        #self.centring_done,
-                        #self.sample_centring_result
-                    #)
-                    #if self.close_kappa:
-                        #HWR.beamline.diffractometer.close_kappa()
-            #HWR.beamline.sample_changer.do_pick()
-                #except Exception as e:
-                    #items[0].setText(1, "Error loading")
-                    #items[0].set_background_color(3)
-                    #msg = "Error loading sample, " + str(e)
-                    #logging.getLogger("GUI").error(msg)
-                #finally:
-                    #self.enable_collect(True)
-                    #self.tree_brick.sample_mount_finished.emit()
-            #else:
-                #logging.getLogger("GUI").\
-                    #info('Its not possible to mount samples in free pin mode')
+            if not items[0].get_model().free_pin_mode:
+                sample_on_load_tool = HWR.sample_changer._chnLidSampleOnTool.get_value()
+                if sample_on_load_tool is not None: # sample on tool, next to be loaded comes after tool
+                    next_load_sample = HWR.lims.next_sample( sample_on_load_tool )
+                else: # no sample on tool: sample needs to be loaded, followed by a pick.
+                    next_load_sample = HWR.lims.next_sample( loaded_sample )
+                next_pick_sample = HWR.lims.next_sample( next_load_sample ) # should return None is no available next sample
+                HWR.beamline.sample_changer.set_next_pick_sample(next_pick_sample)
+                self.dc_tree_widget.mount_sample( next_load_sample )
 
     def enable_pick(self):
         self.pick_button.setEnabled(True)
