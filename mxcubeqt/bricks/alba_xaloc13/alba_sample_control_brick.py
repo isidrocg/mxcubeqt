@@ -86,12 +86,15 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.clear_all_button = MonoStateButton(self, "Clear all", "Delete")
         self.auto_center_button = DuoStateButton(self, "Auto")
         self.auto_center_button.set_icons("VCRPlay2", "Delete")        
-        self.auto_center_button.setText("Auto")
         self.realign_button = MonoStateButton(self, "Realign beam", "QuickRealign")
+        
         # ALBA specific
+        self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
+
         self.beam_align_mode_button = DuoStateButton(self, "BeamView")
         self.beam_align_mode_button.set_icons("BeamAlign", "Delete")
-
+        self.ln2shower_button = DuoStateButton(self, "Shower")
+        self.ln2shower_button.set_icons("shower_on", "shower_off") 
         
         # Layout --------------------------------------------------------------
         _main_vlayout = qt_import.QVBoxLayout(self)
@@ -110,6 +113,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         _main_vlayout.addWidget(self.select_all_button)
         _main_vlayout.addWidget(self.clear_all_button)
         _main_vlayout.addWidget(self.realign_button)
+        _main_vlayout.addWidget(self.ln2shower_button)
         _main_vlayout.addStretch(0)
         _main_vlayout.setSpacing(0)
         _main_vlayout.setContentsMargins(0, 0, 0, 0)
@@ -129,6 +133,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         # ALBA specific
         self.auto_center_button.commandExecuteSignal.connect(self.auto_center_duo_clicked)
         self.beam_align_mode_button.commandExecuteSignal.connect(self.beam_align_mode_clicked)
+        self.ln2shower_button.commandExecuteSignal.connect(self.ln2shower_duo_clicked)
 
         # Other ---------------------------------------------------------------
         self.centre_button.setToolTip("3 click centring")
@@ -249,6 +254,14 @@ class AlbaSampleControlBrick(SampleControlBrick):
             self.auto_center_button.command_failed()
             self.accept_button.setEnabled(True)
 
+    def ln2shower_duo_clicked(self, state):
+        if state:
+            self.ln2shower_hwobj.run_ln2shower_wash()
+            self.ln2shower_button.command_started()
+        else:
+            self.ln2shower_hwobj.run_ln2shower_off()
+            self.ln2shower_button.command_done()
+            
     def centring_started(self):
         self.setEnabled(True)
         self.centre_button.command_started()

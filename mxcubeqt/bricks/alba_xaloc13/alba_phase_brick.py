@@ -41,6 +41,14 @@ class AlbaPhaseBrick(PhaseBrick):
                 HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
             )
 
+        self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
+
+        if self.ln2shower_hwobj is not None:
+            self.connect(
+                self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed) 
+            )
+
+            
     def enable_widget(self, *args):
         self.setEnabled(True)
         
@@ -55,4 +63,10 @@ class AlbaPhaseBrick(PhaseBrick):
         
     def collect_failed(self, owner, state, message, *args):
         self.enable_widget()
+
+    def ln2shower_is_pumping_changed( self, value ):
+        if value:
+            self.disable_widget()
+        else:
+            self.enable_widget()
  
