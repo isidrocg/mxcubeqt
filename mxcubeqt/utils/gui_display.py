@@ -25,6 +25,9 @@ import weakref
 import platform
 import webbrowser
 import collections
+if hasattr(collections, "abc"):
+    collections.Callable = collections.abc.Callable
+
 from functools import partial
 
 from mxcubeqt.utils import icons, colors, property_editor, qt_import
