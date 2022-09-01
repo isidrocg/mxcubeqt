@@ -137,11 +137,11 @@ def get_custom_bricks_dirs():
 
 def set_logging_name(name, logging_formatter=""):
     global LOG_FORMATTER, HWR_LOG_HANDLER, LOGIN_NAME
+    _formatter = LOG_FORMATTER
     logging_formatter.replace(" ", "")
-    if logging_formatter == "":
-        logging_formatter = LOG_FORMATTER
-    _formatter = logging.Formatter(logging_formatter)
-    HWR_LOG_HANDLER.setFormatter(LOG_FORMATTER)
+    if logging_formatter != "":
+        _formatter = logging.Formatter(logging_formatter)
+    HWR_LOG_HANDLER.setFormatter(_formatter)
     LOGIN_NAME = name
 
 
