@@ -50,6 +50,23 @@ class AlbaTreeBrick(TreeBrick):
         self.connect(HWR.beamline.lims, "ispyb_sync_successful", self.enable_pick)
         self.sample_changer_widget.centring_cbox.setCurrentIndex(2)
         self.dc_tree_widget.set_centring_method(2)
+        
+        if HWR.beamline.collect is not None:
+            self.connect(
+                HWR.beamline.collect, "collectStarted", self.collect_started
+            )
+            self.connect(
+                HWR.beamline.collect, "collectOscillationFinished", self.collect_finished
+            )
+            self.connect(
+                HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
+            )
+        self.connect(
+            HWR.beamline.sample_view, "centringInProgress", self.centring_status_changed
+        )
+        self.connect(
+            HWR.beamline.sample_view, "centringSuccessful", self.centring_successful
+        )
 
     def pick(self):
         if HWR.beamline.sample_changer is not None:
@@ -125,3 +142,22 @@ class AlbaTreeBrick(TreeBrick):
     #               self.__beam.hide()
     #           except AttributeError:
     #             pass
+
+    def collect_started(self, owner, num_oscillations):
+        self.dc_tree_widget.setEnabled(False)
+        self.sample_changer_widget.setEnabled(False)
+
+    def collect_finished(self, owner, state, message, *args):
+        self.dc_tree_widget.setEnabled(True)
+        self.sample_changer_widget.setEnabled(True)
+        
+    def collect_failed(self, owner, state, message, *args):
+        self.dc_tree_widget.setEnabled(True)
+        self.sample_changer_widget.setEnabled(True)
+ 
+    def centring_status_changed(self, centring_status_bool):
+        self.setEnabled(not centring_status_bool)
+        #self.dc_tree_widget.setEnabled(not centring_status)
+        
+    def centring_successful(self, method_name, centring_status_dict):
+        self.centring_status_changed(False) # False means not centering
