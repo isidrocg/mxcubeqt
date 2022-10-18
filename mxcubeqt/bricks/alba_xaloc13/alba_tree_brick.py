@@ -144,15 +144,15 @@ class AlbaTreeBrick(TreeBrick):
     #             pass
 
     def collect_started(self, owner, num_oscillations):
-        self.dc_tree_widget.setEnabled(False)
+        self.dc_tree_widget.sample_tree_widget.setEnabled(False)
         self.sample_changer_widget.setEnabled(False)
 
     def collect_finished(self, owner, state, message, *args):
-        self.dc_tree_widget.setEnabled(True)
+        self.dc_tree_widget.sample_tree_widget.setEnabled(True)
         self.sample_changer_widget.setEnabled(True)
         
     def collect_failed(self, owner, state, message, *args):
-        self.dc_tree_widget.setEnabled(True)
+        self.dc_tree_widget.sample_tree_widget.setEnabled(True)
         self.sample_changer_widget.setEnabled(True)
  
     def centring_status_changed(self, centring_status_bool):
