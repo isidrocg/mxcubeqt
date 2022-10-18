@@ -45,7 +45,7 @@ class AlbaPhaseBrick(PhaseBrick):
 
         if self.ln2shower_hwobj is not None:
             self.connect(
-                self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed) 
+                self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed
             )
 
             
