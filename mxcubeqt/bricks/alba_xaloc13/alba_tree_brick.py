@@ -43,7 +43,7 @@ class AlbaTreeBrick(TreeBrick):
         
         #Add the button to the layout created in tree_brick.TreeBrick,
         #below ISPyB button
-        self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
+        #self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
         self.logger.info(self.pick_button.text())
         
         # Slots -----------------------------------------------------------------
