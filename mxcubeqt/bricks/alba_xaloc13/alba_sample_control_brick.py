@@ -256,8 +256,16 @@ class AlbaSampleControlBrick(SampleControlBrick):
 
     def ln2shower_duo_clicked(self, state):
         if state:
-            self.ln2shower_hwobj.run_ln2shower_wash()
-            self.ln2shower_button.command_started()
+            if not self.collecting and self.robot_path_is_safe:
+                if self.ln2shower_hwobj.run_ln2shower_wash() == True:
+                    self.ln2shower_button.command_started()
+                else:
+                    logging.getLogger("user_level_log").error("Cannot turn the ln2 shower on. If there is no other task running, call your LC")
+            elif self.collecting:
+                logging.getLogger("user_level_log").error("Do not try to turn on the shower while collecting")
+            elif not self.robot_path_is_safe:
+                logging.getLogger("user_level_log").error("Do not try to turn on the shower while the sample changer is changing it")
+                
         else:
             self.ln2shower_hwobj.run_ln2shower_off()
             self.ln2shower_button.command_done()
