@@ -457,7 +457,7 @@
                       name: showStep
                       old_value: 1
                       type: boolean
-                      value: 0
+                      value: 1
                     - comment: ''
                       default_value: 0
                       hidden: false
@@ -471,7 +471,7 @@
                       name: showStop
                       old_value: 1
                       type: boolean
-                      value: 0
+                      value: 1
                     type: alba_motor_spinbox_brick
                   - brick:
                       class: AlbaMotorSpinboxBrick
@@ -649,7 +649,7 @@
                       name: showStep
                       old_value: 1
                       type: boolean
-                      value: 1
+                      value: 0
                     - comment: ''
                       default_value: 0
                       hidden: false
@@ -841,7 +841,7 @@
                       name: showStep
                       old_value: 1
                       type: boolean
-                      value: 1
+                      value: 0
                     - comment: ''
                       default_value: 0
                       hidden: false
