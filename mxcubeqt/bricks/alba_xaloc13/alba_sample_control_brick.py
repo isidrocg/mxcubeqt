@@ -44,6 +44,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.file_index = 1
         self.collecting = None
         self.centering_in_progress = False
+        self.ln2shower_is_pumping = None
         
         if HWR.beamline.detector is not None:
             if HWR.beamline.detector.get_cam_state() == "RUNNING":
@@ -148,6 +149,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.draw_grid_button.setToolTip("Create grid with drag and drop")
         self.select_all_button.setToolTip("Select all centring points")
         self.clear_all_button.setToolTip("Clear all items")
+        self.ln2shower_button.setToolTip("Wash crystal with liquid nitrogen shower")
         # self.instanceSynchronize("")
 
         #TODO: check why the diffractometer signals are not used, and if the QtGraphicsManager signals are connected well
@@ -177,6 +179,11 @@ class AlbaSampleControlBrick(SampleControlBrick):
                 HWR.beamline.collect, "collectOscillationFailed", self.collect_finished
             )
 
+        if self.ln2shower_hwobj is not None:
+            self.connect(
+                self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed
+            )
+            
 
     def collect_started(self, owner, num_oscillations):
         #logging.getLogger("user_level_log").info("Collection started in sample_control_brick")
@@ -218,6 +225,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
     def centre_button_clicked(self, state):
         if state:
             if not self.collecting and self.robot_path_is_safe and \
+                    not self.ln2shower_is_pumping and \
                     HWR.beamline.sample_changer.sample_can_be_centered:
                 self.centering_in_progress = True
                 HWR.beamline.sample_changer.sample_can_be_centered = True
@@ -225,8 +233,8 @@ class AlbaSampleControlBrick(SampleControlBrick):
                 self.auto_center_button.command_started()
             elif self.collecting:
                 logging.getLogger("user_level_log").error("Do not try to center a sample while collecting")
-            elif self.centring_in_progress:
-                logging.getLogger("user_level_log").error("Do not try to center a sample while centring")
+            elif self.ln2shower_is_pumping:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while washing the crystal, turn the shower off first")
             elif not self.robot_path_is_safe:
                 logging.getLogger("user_level_log").error("Do not try to center a sample while the sample changer is changing it")
         else:
@@ -239,6 +247,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         logging.getLogger("HWR").debug('auto_center_duo_clicked')
         if state:
             if not self.collecting and self.robot_path_is_safe and \
+                    not self.ln2shower_is_pumping and \
                     HWR.beamline.sample_changer.sample_can_be_centered:
                 self.centering_in_progress = True
                 HWR.beamline.sample_changer.sample_can_be_centered = True
@@ -246,6 +255,8 @@ class AlbaSampleControlBrick(SampleControlBrick):
                 self.auto_center_button.command_started()
             elif self.collecting:
                 logging.getLogger("user_level_log").error("Do not try to center a sample while collecting")
+            elif self.ln2shower_is_pumping:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while washing the crystal, turn the shower off first")
             elif not self.robot_path_is_safe:
                 logging.getLogger("user_level_log").error("Do not try to center a sample while the sample changer is changing it")
         else:
@@ -300,3 +311,11 @@ class AlbaSampleControlBrick(SampleControlBrick):
             colors.set_widget_color(self.reject_button, qt_import.Qt.red)
         else:
             self.reject_button.setEnabled(False)
+
+    def ln2shower_is_pumping_changed(self, is_pumping_bool):
+        if is_pumping_bool != self.ln2shower_is_pumping:
+            if is_pumping_bool:
+                self.ln2shower_button.command_started() # make sure the button state is updated
+            else: 
+                self.ln2shower_button.command_done() 
+        self.ln2shower_is_pumping = is_pumping_bool

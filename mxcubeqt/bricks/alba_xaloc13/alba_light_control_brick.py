@@ -251,6 +251,7 @@ class AlbaLightControlBrick(BaseWidget):
         self.enable_backlight_widget()
  
     def ln2shower_is_pumping_changed( self, value ):
+        self.logger.debug("Ln2 shower pumping changed, new_value: %s" % value )
         if value:
             self.disable_backlight_widget()
         else:

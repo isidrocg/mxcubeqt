@@ -40,7 +40,8 @@ class AlbaTreeBrick(TreeBrick):
         self.logger.info("AlbaTreeBrick.__init__()")
         
         self.pick_button = qt_import.QPushButton('Mount & Pick')
-        
+        self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
+
         #Add the button to the layout created in tree_brick.TreeBrick,
         #below ISPyB button
         #self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
@@ -67,6 +68,12 @@ class AlbaTreeBrick(TreeBrick):
         self.connect(
             HWR.beamline.sample_view, "centringSuccessful", self.centring_successful
         )
+
+        if self.ln2shower_hwobj is not None:
+            self.connect(
+                self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed
+            )
+
 
     def pick(self):
         if HWR.beamline.sample_changer is not None:
@@ -161,3 +168,6 @@ class AlbaTreeBrick(TreeBrick):
         
     def centring_successful(self, method_name, centring_status_dict):
         self.centring_status_changed(False) # False means not centering
+
+    def ln2shower_is_pumping_changed( self, is_pumping_bool ):
+        self.setEnabled( not is_pumping_bool )
