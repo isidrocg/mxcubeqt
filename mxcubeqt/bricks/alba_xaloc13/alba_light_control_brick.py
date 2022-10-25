@@ -96,7 +96,7 @@ class AlbaLightControlBrick(BaseWidget):
         # Slots --------------------------------------------------------
 
         # Qt signal/slot connections ------------------------------------------
-        if HWR.beamline.machine_info is not None:
+        if HWR.beamline.sample_changer is not None:
             self.connect(
                 HWR.beamline.sample_changer, "path_safeChanged", self.enable_backlight_widget_toggle
             )

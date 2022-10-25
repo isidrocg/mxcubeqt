@@ -28,7 +28,7 @@ from mxcubeqt.bricks.sample_control_brick import (
 from mxcubecore import HardwareRepository as HWR
 
 from mxcubeqt.base_components import BaseWidget
-from mxcubeqt.utils import qt_import
+from mxcubeqt.utils import colors, qt_import
 
 __credits__ = ["ALBA"]
 __license__ = "LGPLv3+"
@@ -42,6 +42,19 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.inside_data_collection = None
         self.prefix = "snapshot"
         self.file_index = 1
+        self.collecting = None
+        self.centring_in_progress = False
+        
+        if HWR.beamline.detector is not None:
+            if HWR.beamline.detector.get_cam_state() == "RUNNING":
+                self.collecting = True
+            elif HWR.beamline.detector.get_cam_state() == "STANDBY":
+                self.collecting = False
+            else: 
+                raise Exception("The detector seems to be in a funny state")
+        self.robot_path_is_safe = None
+        if HWR.beamline.sample_changer is not None:
+            self.robot_path_is_safe = HWR.beamline.sample_changer.path_safe()
 
         # Properties ----------------------------------------------------------
         self.add_property("enableAutoFocus", "boolean", True)
@@ -143,6 +156,33 @@ class AlbaSampleControlBrick(SampleControlBrick):
             "diffractometerPhaseChanged",
             self.diffractometer_phase_changed,
         )
+        if HWR.beamline.sample_changer is not None:
+            self.connect(
+                HWR.beamline.sample_changer, "path_safeChanged", self.path_safe_changed
+            )
+
+        if HWR.beamline.collect is not None:
+            self.connect(
+                HWR.beamline.collect, "collectStarted", self.collect_started
+            )
+            self.connect(
+                HWR.beamline.collect, "collectOscillationFinished", self.collect_finished
+            )
+            self.connect(
+                HWR.beamline.collect, "collectOscillationFailed", self.collect_finished
+            )
+
+
+    def collect_started(self, owner, num_oscillations):
+        #logging.getLogger("user_level_log").info("Collection started in sample_control_brick")
+        self.collecting = True
+
+    def collect_finished(self, owner, state, message, *args):
+        #logging.getLogger("user_level_log").info("Collection finished in sample_control_brick")
+        self.collecting = False
+
+    def path_safe_changed(self, value):
+        self.robot_path_is_safe = value
 
     def beam_align_mode_clicked(self):
         """
@@ -156,12 +196,36 @@ class AlbaSampleControlBrick(SampleControlBrick):
         else:
             HWR.beamline.sample_view.camera.align_mode = True
 
+    def accept_clicked(self):
+        if not self.collecting and self.robot_path_is_safe and \
+                HWR.beamline.sample_changer.sample_can_be_centered and \
+                not self.centring_in_progress:
+            colors.set_widget_color(self.accept_button, self.standard_color)
+            self.reject_button.setEnabled(False)
+            HWR.beamline.sample_view.accept_centring()
+        elif self.collecting:
+            logging.getLogger("user_level_log").error("Button not clickable while collecting")
+        elif self.centring_in_progress:
+            logging.getLogger("user_level_log").error("Button not clickable while centring")
+        elif not self.robot_path_is_safe:
+            logging.getLogger("user_level_log").error("Button not clickable while the sample changer is changing sample")
+
     def centre_button_clicked(self, state):
         if state:
-            HWR.beamline.sample_changer.sample_can_be_centered = True
-            HWR.beamline.sample_view.start_centring(tree_click=True)
-            self.auto_center_button.command_started()
+            if not self.collecting and self.robot_path_is_safe and \
+                    HWR.beamline.sample_changer.sample_can_be_centered:
+                self.centring_in_progress = True
+                HWR.beamline.sample_changer.sample_can_be_centered = True
+                HWR.beamline.sample_view.start_centring(tree_click=True)
+                self.auto_center_button.command_started()
+            elif self.collecting:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while collecting")
+            elif self.centring_in_progress:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while centring")
+            elif not self.robot_path_is_safe:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while the sample changer is changing it")
         else:
+            self.centering_in_progress = False
             HWR.beamline.sample_view.cancel_centring(reject=False)
             self.auto_center_button.command_failed()
             self.accept_button.setEnabled(True)
@@ -169,10 +233,18 @@ class AlbaSampleControlBrick(SampleControlBrick):
     def auto_center_duo_clicked(self, state):
         logging.getLogger("HWR").debug('auto_center_duo_clicked')
         if state:
-            HWR.beamline.sample_changer.sample_can_be_centered = True
-            HWR.beamline.sample_view.start_auto_centring()
-            self.auto_center_button.command_started()
+            if not self.collecting and self.robot_path_is_safe and \
+                    HWR.beamline.sample_changer.sample_can_be_centered:
+                self.centring_in_progress = True
+                HWR.beamline.sample_changer.sample_can_be_centered = True
+                HWR.beamline.sample_view.start_auto_centring()
+                self.auto_center_button.command_started()
+            elif self.collecting:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while collecting")
+            elif not self.robot_path_is_safe:
+                logging.getLogger("user_level_log").error("Do not try to center a sample while the sample changer is changing it")
         else:
+            self.centring_in_progress = False
             HWR.beamline.sample_view.cancel_centring(reject=False)
             self.auto_center_button.command_failed()
             self.accept_button.setEnabled(True)
@@ -185,6 +257,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.reject_button.setEnabled(True)
 
     def centring_successful(self, method, centring_status):
+        self.centring_in_progress = False
         self.centre_button.command_done()
         self.auto_center_button.command_done()
         self.accept_button.setEnabled(True)
@@ -196,6 +269,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.setEnabled(True)
 
     def centring_failed(self, method, centring_status):
+        self.centring_in_progress = False
         self.centre_button.command_failed()
         self.auto_center_button.command_failed()
         self.accept_button.setEnabled(True)
