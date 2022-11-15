@@ -58,7 +58,7 @@ class AlbaResolutionBrick(ResolutionBrick):
         colors.LIGHT_YELLOW,                #OPEN
         colors.LIGHT_YELLOW,                #INSERT
         colors.LIGHT_YELLOW,                #EXTRACT
-        qt_import.QColor(255, 165, 0),      #MOVING
+        colors.LIGHT_YELLOW,                #MOVING
         colors.LIGHT_GREEN,                 #STANDBY
         colors.LIGHT_RED,                   #FAULT
         colors.LIGHT_YELLOW,                #INIT
