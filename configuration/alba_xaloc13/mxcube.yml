@@ -3761,7 +3761,7 @@
                   value: default
                 type: vbox
               - brick:
-                  class: TaskToolBoxBrick
+                  class: AlbaTaskToolBoxBrick
                   name: task_toolbox_brick
                 children: []
                 connections:
@@ -3857,7 +3857,7 @@
                   old_value: 0
                   type: boolean
                   value: 0
-                type: task_toolbox_brick
+                type: alba_task_toolbox_brick
               connections: []
               name: hbox0
               properties:

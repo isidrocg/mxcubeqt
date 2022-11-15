@@ -36,8 +36,8 @@ class AlbaTreeBrick(TreeBrick):
 
     def __init__(self, *args):
         TreeBrick.__init__(self, *args)
-        self.logger = logging.getLogger("GUI")
-        self.logger.info("AlbaTreeBrick.__init__()")
+        self.logger = logging.getLogger("HWR")
+        self.logger.debug("AlbaTreeBrick.__init__()")
         
         self.pick_button = qt_import.QPushButton('Mount & Pick')
         self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
@@ -45,7 +45,7 @@ class AlbaTreeBrick(TreeBrick):
         #Add the button to the layout created in tree_brick.TreeBrick,
         #below ISPyB button
         #self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
-        self.logger.info(self.pick_button.text())
+        self.logger.debug( self.pick_button.text() )
         
         # Slots -----------------------------------------------------------------
         self.connect(HWR.beamline.lims, "ispyb_sync_successful", self.enable_pick)
@@ -164,7 +164,7 @@ class AlbaTreeBrick(TreeBrick):
  
     def centring_status_changed(self, centring_status_bool):
         self.setEnabled(not centring_status_bool)
-        #self.dc_tree_widget.setEnabled(not centring_status)
+        self.dc_tree_widget.setEnabled(not centring_status_bool)
         
     def centring_successful(self, method_name, centring_status_dict):
         self.centring_status_changed(False) # False means not centering

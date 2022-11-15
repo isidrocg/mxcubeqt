@@ -43,7 +43,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
         self.prefix = "snapshot"
         self.file_index = 1
         self.collecting = None
-        self.centering_in_progress = False
+        self.centring_in_progress = None
         self.ln2shower_is_pumping = None
         
         if HWR.beamline.detector is not None:
@@ -183,6 +183,9 @@ class AlbaSampleControlBrick(SampleControlBrick):
             self.connect(
                 self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed
             )
+            self.connect(
+                self.ln2shower_hwobj, "ln2showerFault", self.ln2shower_fault_changed
+            )
             
 
     def collect_started(self, owner, num_oscillations):
@@ -211,7 +214,7 @@ class AlbaSampleControlBrick(SampleControlBrick):
     def accept_clicked(self):
         if not self.collecting and self.robot_path_is_safe and \
                 HWR.beamline.sample_changer.sample_can_be_centered and \
-                not self.centring_in_progress:
+                not self.centring_in_progress and not self.ln2shower_is_pumping:
             colors.set_widget_color(self.accept_button, self.standard_color)
             self.reject_button.setEnabled(False)
             HWR.beamline.sample_view.accept_centring()
@@ -221,6 +224,8 @@ class AlbaSampleControlBrick(SampleControlBrick):
             logging.getLogger("user_level_log").error("Button not clickable while centring")
         elif not self.robot_path_is_safe:
             logging.getLogger("user_level_log").error("Button not clickable while the sample changer is changing sample")
+        elif self.ln2shower_is_pumping:
+            logging.getLogger("user_level_log").error("Button not clickable while the ln2shower is pumping, turn off pump first")
 
     def centre_button_clicked(self, state):
         if state:
@@ -319,3 +324,11 @@ class AlbaSampleControlBrick(SampleControlBrick):
             else: 
                 self.ln2shower_button.command_done() 
         self.ln2shower_is_pumping = is_pumping_bool
+
+    def ln2shower_fault_changed(self, value):
+        """
+          value True means in fault
+        """
+        if value:
+            logging.getLogger("user_level_log").error("The ln2 shower is in fault")
+        self.ln2shower_button.setEnabled(not value)
