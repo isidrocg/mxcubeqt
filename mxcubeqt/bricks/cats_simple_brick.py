@@ -238,7 +238,7 @@ class CatsSimpleBrick(SampleChangerBrick):
             self._poweredOn and True or False
         )  # handles init state None as False
 
-        logging.getLogger().debug(
+        logging.getLogger("HWR").debug(
             "updating buttons %s / %s / %s" % (running, poweredOn, self.state)
         )
 

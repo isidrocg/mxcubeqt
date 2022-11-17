@@ -442,7 +442,7 @@ class CreateTaskBase(qt_import.QWidget):
                         #os.path.sep
                     #)
                     (data_directory, proc_directory) = self.get_default_directory(
-                        tree_item, sub_dir="%s%s" % (prefix.split("-")[0], os.path.sep)
+                        tree_item, sub_dir="%s%s" % (prefix, os.path.sep)
                     )
                 else:
                     (data_directory, proc_directory) = self.get_default_directory(

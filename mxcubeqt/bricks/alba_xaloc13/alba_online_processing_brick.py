@@ -33,7 +33,7 @@ __category__ = "General"
 
 class AlbaOnlineProcessingBrick(OnlineProcessingBrick):
     def __init__(self, *args):
-        self.logger = logging.getLogger("GUI")
+        self.logger = logging.getLogger("HWR")
         self.logger.info("AlbaOnlineProcessingBrick.__init__()")
         BaseWidget.__init__(self, *args)
 

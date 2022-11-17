@@ -32,6 +32,43 @@ __category__ = "General"
 
 class AlbaResolutionBrick(ResolutionBrick):
 
+    #Sardana Motor State map
+    #state_map = {
+        #"ON": MotorStates.READY,
+        #"OFF": MotorStates.OFF,
+        #"CLOSE": MotorStates.DISABLED,
+        #"OPEN": MotorStates.DISABLED,
+        #"INSERT": MotorStates.DISABLED,
+        #"EXTRACT": MotorStates.DISABLED,
+        #"MOVING": MotorStates.MOVING,
+        #"STANDBY": MotorStates.READY,
+        #"FAULT": MotorStates.FAULT,
+        #"INIT": MotorStates.INITIALIZING,
+        #"RUNNING": MotorStates.MOVING,
+        #"ALARM": MotorStates.ALARM,
+        #"DISABLE": MotorStates.DISABLED,
+        #"UNKNOWN": MotorStates.UNKNOWN,
+    #}
+
+
+    STATE_COLORS = (
+        colors.LIGHT_RED,                   #ON
+        colors.LIGHT_RED,                   #OFF
+        colors.LIGHT_GREEN,                 #CLOSE
+        colors.LIGHT_YELLOW,                #OPEN
+        colors.LIGHT_YELLOW,                #INSERT
+        colors.LIGHT_YELLOW,                #EXTRACT
+        colors.LIGHT_YELLOW,                #MOVING
+        colors.LIGHT_GREEN,                 #STANDBY
+        colors.LIGHT_RED,                   #FAULT
+        colors.LIGHT_YELLOW,                #INIT
+        colors.LIGHT_YELLOW,                #RUNNING
+        colors.LIGHT_RED,                   #ALARM
+        colors.LIGHT_RED,                   #DISABLE
+        colors.LIGHT_RED,                   #UNKNOWN
+    )
+
+
     def __init__(self, *args):
 
         ResolutionBrick.__init__(self, *args)
@@ -91,3 +128,33 @@ class AlbaResolutionBrick(ResolutionBrick):
             groupbox_title += " (door is unlocked)"
         self.group_box.setTitle(groupbox_title)
         self.create_tool_tip()
+
+    def detector_distance_state_changed(self, state):
+        if state is None:
+            return
+
+        detector_distance = HWR.beamline.detector.distance
+        color = ResolutionBrick.STATE_COLORS[state.value[1]]
+        unit = self.units_combobox.currentText()
+
+        if state == detector_distance.STATES.FAULT:
+            self.setEnabled(False)
+            return
+
+        if unit == "mm":
+            if state == detector_distance.STATES.READY:
+                self.new_value_ledit.blockSignals(True)
+                self.new_value_ledit.setText("")
+                self.new_value_ledit.blockSignals(False)
+                self.new_value_ledit.setEnabled(True)
+            else:
+                self.new_value_ledit.setEnabled(False)
+            if state == detector_distance.STATES.BUSY:
+                # or \
+                # state == detector_distance.motor_states.MOVESTARTED:
+                self.stop_button.setEnabled(True)
+            else:
+                self.stop_button.setEnabled(False)
+
+            colors.set_widget_color(self.new_value_ledit, color)
+

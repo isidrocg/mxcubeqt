@@ -64,6 +64,7 @@ class AlbaLightControlBrick(BaseWidget):
 
         # Hardware objects ----------------------------------------------------
         self.light_ho = None
+        self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
 
         self.state = None # True = "on", False = "off"
         self.level = None
@@ -111,6 +112,12 @@ class AlbaLightControlBrick(BaseWidget):
                 HWR.beamline.collect, "collectOscillationFailed", self.collect_failed
             )
 
+        if self.ln2shower_hwobj is not None:
+            self.connect(
+                self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed
+            )
+            
+            
         # Defaults
         self.set_icons("BulbCheck,BulbDelete")
 
@@ -243,3 +250,10 @@ class AlbaLightControlBrick(BaseWidget):
     def collect_failed(self, owner, state, message, *args):
         self.enable_backlight_widget()
  
+    def ln2shower_is_pumping_changed( self, value ):
+        self.logger.debug("Ln2 shower pumping changed, new_value: %s" % value )
+        if value:
+            self.disable_backlight_widget()
+        else:
+            self.enable_backlight_widget()
+            
