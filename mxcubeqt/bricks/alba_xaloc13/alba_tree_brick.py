@@ -75,16 +75,18 @@ class AlbaTreeBrick(TreeBrick):
             )
 
 
+        self.pick_button.clicked.connect( self.pick )
+
     def pick(self):
         if HWR.beamline.sample_changer is not None:
             pass
-            if not items[0].get_model().free_pin_mode:
-                sample_on_load_tool = HWR.sample_changer._chnLidSampleOnTool.get_value()
+            if self.sample_changer_widget.filter_cbox.currentIndex() == 1: # only for sample changer with pins
+                sample_on_load_tool = HWR.beamline.sample_changer._chnLidSampleOnTool.get_value()
                 if sample_on_load_tool is not None: # sample on tool, next to be loaded comes after tool
-                    next_load_sample = HWR.lims.next_sample( sample_on_load_tool )
+                    next_load_sample = HWR.beamline.lims.next_sample_by_SC_position( sample_on_load_tool )
                 else: # no sample on tool: sample needs to be loaded, followed by a pick.
-                    next_load_sample = HWR.lims.next_sample( loaded_sample )
-                next_pick_sample = HWR.lims.next_sample( next_load_sample ) # should return None is no available next sample
+                    next_load_sample = HWR.beamline.lims.next_sample_by_SC_position( loaded_sample )
+                next_pick_sample = HWR.beamline.lims.next_sample_by_SC_position( next_load_sample ) # should return None is no available next sample
                 HWR.beamline.sample_changer.set_next_pick_sample(next_pick_sample)
                 self.dc_tree_widget.mount_sample( next_load_sample )
 
