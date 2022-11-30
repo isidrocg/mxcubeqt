@@ -154,6 +154,28 @@ class DataPathWidget(qt_import.QWidget):
         if HWR.beamline.session.synchrotron_name == "ALBA":
             _group, _ = os.path.split(str(self.data_path_layout.folder_ledit.text()))
             self.data_path_layout.folder_ledit.setText(os.path.join(_group, str(new_value)))
+            if HWR.beamline.collect != None and HWR.beamline.session.get_proposal() != 'local-user':
+                HWR.beamline.collect.set_sardana_collect_env( MXCollectPrefix = new_value, MXCollectDir = os.path.join(_group, str(new_value)) )
+            runno = sorted(
+                set(
+                    [x.replace(prefix+'_','').split('_')[0] \
+                        for x in os.listdir(base) if os.path.isfile(os.path.join(base,x)) and len(x) > len(prefix) and  x[:len(prefix)] == prefix and "0001" in x]
+                )
+            )[-1]
+            logging.getLogger("HWR").debug(
+                "Next available run number is %s" % runno
+            )
+            #runno = 1
+            #first_img_num = 1
+            #self.data_path_layout.run_number_ledit.setText( str(runno) )
+            #while os.path.exists( self._data_model.get_image_file_name() % first_img_num ):
+                #runno += 1
+                #self.data_path_layout.run_number_ledit.setText( str(runno) )
+            self.data_path_layout.run_number_ledit.setText( str(runno) )
+            #TODO find next available run number
+            # One option is [x.replace(prefix+'_','').split('_')[0] for x in os.listdir(base) if os.path.isfile(os.path.join(base,x)) and len(x) > len(prefix) and  x[:len(prefix)] == prefix]
+            # this gives a list of all run_numbers of the files with the prefix. 
+
 
         self._data_model.base_prefix = str(new_value)
         self.update_file_name()
@@ -163,6 +185,10 @@ class DataPathWidget(qt_import.QWidget):
         if str(new_value).isdigit():
             self._data_model.run_number = int(new_value)
             self.data_path_layout.run_number_ledit.setText(str(new_value))
+
+            if HWR.beamline.session.synchrotron_name == "ALBA":
+                if HWR.beamline.collect != None and HWR.beamline.session.get_proposal() != 'local-user':
+                    HWR.beamline.collect.set_sardana_collect_env( MXRunNumber = new_value )
 
             self.update_file_name()
             self.pathTemplateChangedSignal.emit()
@@ -199,6 +225,17 @@ class DataPathWidget(qt_import.QWidget):
         else:
             new_image_directory = base_image_dir
             new_proc_dir = base_proc_dir
+
+        if HWR.beamline.session.synchrotron_name == "ALBA" :
+            if HWR.beamline.collect != None  and HWR.beamline.session.get_proposal() != 'local-user':
+                HWR.beamline.collect.set_sardana_collect_env( MXCollectDir = new_image_directory )
+            #runno = 1
+            #first_img_num = 1
+            #self.data_path_layout.run_number_ledit.setText( str(runno) )
+            #while os.path.exists( self._data_model.get_image_file_name() % first_img_num ):
+                #runno += 1
+                #self.data_path_layout.run_number_ledit.setText( str(runno) )
+
 
         self._data_model.directory = new_image_directory
         self._data_model.process_directory = new_proc_dir
