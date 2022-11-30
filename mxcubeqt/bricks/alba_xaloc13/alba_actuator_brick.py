@@ -22,6 +22,7 @@ import logging
 from mxcubeqt.utils import colors, qt_import
 from mxcubeqt.base_components import BaseWidget
 
+from mxcubecore import HardwareRepository as HWR
 
 __credits__ = ["MXCuBE collaboration"]
 __license__ = "LGPLv3+"
@@ -125,7 +126,7 @@ class AlbaActuatorBrick(BaseWidget):
 
     def update(self, state=None):
         if self.actuator_hwo is not None:
-            if state is None:
+            if state == None:
                 state = self.actuator_hwo.get_state()
                 self.logger.info("State = %s" % state )
                 status = self.actuator_hwo.get_status()
@@ -156,5 +157,8 @@ class AlbaActuatorBrick(BaseWidget):
             self.actuator_hwo.cmd_in()
 
     def do_cmd_out(self):
+        if self.actuator_hwo.username == 'Photon Shutter': # for photon shuter, close calls do_cmd_out
+            logging.getLogger("HWR").info("Sending supervisor to transfer phase")
+            HWR.beamline.supervisor.set_phase("Transfer")
         if self.actuator_hwo is not None:
             self.actuator_hwo.cmd_out()

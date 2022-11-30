@@ -49,8 +49,16 @@ class AlbaPhaseBrick(PhaseBrick):
             self.connect(
                 self.ln2shower_hwobj, "ln2showerIsPumpingChanged", self.ln2shower_is_pumping_changed
             )
-
             
+        self.disconnect(
+            HWR.beamline.diffractometer, "minidiffPhaseChanged", self.phase_changed
+        )
+
+
+        self.connect(
+            HWR.beamline.supervisor, "phaseChanged", self.phase_changed
+        )
+
     def enable_widget(self, *args):
         self.setEnabled(True)
         
@@ -73,3 +81,40 @@ class AlbaPhaseBrick(PhaseBrick):
         else:
             self.enable_widget()
  
+    def init_phase_list(self):
+        self.phase_combobox.clear()
+        phase_list = HWR.beamline.supervisor.get_phase_list()
+        if len(phase_list) > 0:
+            for phase in phase_list:
+                self.phase_combobox.addItem(phase)
+            self.setEnabled(True)
+        else:
+            self.setEnabled(False)
+
+    def change_phase(self):
+        if HWR.beamline.supervisor is not None:
+            requested_phase = self.phase_combobox.currentText()
+            if self["confirmPhaseChange"] and requested_phase == "BeamLocation":
+                conf_msg = "Please remove any objects that might cause collision!\n" + \
+                           "Continue"
+                if (
+                    qt_import.QMessageBox.warning(
+                        None,
+                        "Warning",
+                        conf_msg,
+                        qt_import.QMessageBox.Ok,
+                        qt_import.QMessageBox.Cancel,
+                   )
+                   == qt_import.QMessageBox.Ok
+                ):
+                   HWR.beamline.supervisor.set_phase(str(requested_phase), timeout=None)
+            else:
+                HWR.beamline.supervisor.set_phase(str(requested_phase), timeout=None)
+
+    def phase_changed(self, phase):
+        if phase.lower() != "unknown" and self.phase_combobox.count() > 0:
+            # index = self.phase_combobox.findText(phase)
+            # self.phase_combobox.setEditText(phase)
+            self.phase_combobox.setCurrentIndex(self.phase_combobox.findText(phase))
+        else:
+            self.phase_combobox.setCurrentIndex(-1)
