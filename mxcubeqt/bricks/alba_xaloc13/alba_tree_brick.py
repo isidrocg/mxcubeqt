@@ -20,7 +20,7 @@
 
 import logging
 from mxcubeqt.bricks.tree_brick import TreeBrick
-from mxcubeqt.utils import qt_import
+from mxcubeqt.utils import queue_item, qt_import
 from mxcubecore import HardwareRepository as HWR
 import os
 
@@ -37,11 +37,11 @@ class AlbaTreeBrick(TreeBrick):
     def __init__(self, *args):
         TreeBrick.__init__(self, *args)
         self.logger = logging.getLogger("HWR")
-        self.logger.debug("AlbaTreeBrick.__init__()")
+        self.logger.info("Initializing AlbaTreeBrick")
         
-        self.pick_button = qt_import.QPushButton('Mount & Pick')
+        self.pick_button = qt_import.QPushButton('Mount && Pick')
         self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
-
+        
         #Add the button to the layout created in tree_brick.TreeBrick,
         #below ISPyB button
         #self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
@@ -78,17 +78,46 @@ class AlbaTreeBrick(TreeBrick):
         self.pick_button.clicked.connect( self.pick )
 
     def pick(self):
+        #TODO: move pick sample selection to CatsXaloc
+        #self.logger.info( "alba_tree_brick pick" )
+        next_load_sample_location = None
         if HWR.beamline.sample_changer is not None:
-            pass
             if self.sample_changer_widget.filter_cbox.currentIndex() == 1: # only for sample changer with pins
-                sample_on_load_tool = HWR.beamline.sample_changer._chnLidSampleOnTool.get_value()
-                if sample_on_load_tool is not None: # sample on tool, next to be loaded comes after tool
-                    next_load_sample = HWR.beamline.lims.next_sample_by_SC_position( sample_on_load_tool )
+                sample_lid_on_load_tool = HWR.beamline.sample_changer._chnLidSampleOnTool.get_value()
+                sample_num_on_load_tool = HWR.beamline.sample_changer._chnNumSampleOnTool.get_value()
+                if sample_lid_on_load_tool != -1 and sample_num_on_load_tool != -1: # sample on tool, next to be loaded comes after tool
+                    next_load_sample_location = HWR.beamline.sample_changer.lidsample_to_basketsample(
+                        sample_lid_on_load_tool, sample_num_on_load_tool 
+                    )
                 else: # no sample on tool: sample needs to be loaded, followed by a pick.
-                    next_load_sample = HWR.beamline.lims.next_sample_by_SC_position( loaded_sample )
-                next_pick_sample = HWR.beamline.lims.next_sample_by_SC_position( next_load_sample ) # should return None is no available next sample
-                HWR.beamline.sample_changer.set_next_pick_sample(next_pick_sample)
-                self.dc_tree_widget.mount_sample( next_load_sample )
+                    next_load_sample_location = HWR.beamline.lims.next_sample_by_SC_position( 
+                        self.dc_tree_widget.get_mounted_sample_item().get_model().location 
+                    )
+                if next_load_sample_location != None: 
+                    if not -1 in next_load_sample_location:
+                        next_pick_sample_location = HWR.beamline.lims.next_sample_by_SC_position( next_load_sample_location ) # should return None is no available next sample
+                        if next_pick_sample_location is not -1: #no pick when reaching the end of the samples in the dewar
+                            HWR.beamline.sample_changer.set_next_pick_sample( next_pick_sample_location )
+                        self.dc_tree_widget.sample_tree_widget.clearSelection()
+                        #TODO: select the sample item to be mounted next
+                        self.get_dc_tree_item_by_location( next_load_sample_location ).setSelected(True)
+                        self.dc_tree_widget.mount_sample()
+
+    def get_dc_tree_item_by_location(self, location):
+        """Updates sample icon"""
+
+        it = qt_import.QTreeWidgetItemIterator(self.dc_tree_widget.sample_tree_widget)
+        item = it.value()
+
+        while item:
+            #self.logger.info("item %s, type %s" % (item, type(item) ) )
+            if isinstance(item, queue_item.SampleQueueItem):
+                if item.get_model().location == location:
+                    return item
+            it += 1
+            item = it.value()
+            
+        return None
 
     def enable_pick(self):
         self.pick_button.setEnabled(True)
