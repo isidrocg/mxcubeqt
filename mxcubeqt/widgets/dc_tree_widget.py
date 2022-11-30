@@ -569,9 +569,8 @@ class DataCollectTree(qt_import.QWidget):
                         sample_changer.unload(22, location, wait=False)
                 except Exception as e:
                     items[0].setText(1, "Error in unloading")
-                    msg = "Error unloading sample, " + str(3) #please check" +\
-                    #    " sample changer: " + str(e)
-                    logging.getLogger("GUI").error(msg)
+                    msg = "Error unloading sample, error " + str(e)
+                    logging.getLogger("HWR").error(msg)
 
                 robot_action_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
                 if not sample_changer.has_loaded_sample():
