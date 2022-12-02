@@ -44,7 +44,7 @@ class AlbaTreeBrick(TreeBrick):
         
         #Add the button to the layout created in tree_brick.TreeBrick,
         #below ISPyB button
-        #self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
+        self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
         self.logger.debug( self.pick_button.text() )
         
         # Slots -----------------------------------------------------------------
@@ -167,10 +167,13 @@ class AlbaTreeBrick(TreeBrick):
         self.sample_changer_widget.setEnabled(True)
  
     def centring_status_changed(self, centring_status_bool):
+        self.logger.debug("Centring status changed to %s", centring_status_bool)
         self.setEnabled(not centring_status_bool)
         self.dc_tree_widget.setEnabled(not centring_status_bool)
+        self.dc_tree_widget.sample_tree_widget.setEnabled(not centring_status_bool)
         
     def centring_successful(self, method_name, centring_status_dict):
+        self.logger.debug("Centring Successful, enabling tree widgets")
         self.centring_status_changed(False) # False means not centering
 
     def ln2shower_is_pumping_changed( self, is_pumping_bool ):
