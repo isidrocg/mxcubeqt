@@ -164,7 +164,10 @@ class DataPathWidget(qt_import.QWidget):
             if HWR.beamline.session != None and HWR.beamline.session.get_proposal() != 'local-user':
                 HWR.beamline.session.set_sardana_collect_env( MXCollectPrefix = new_value, MXCollectDir = base )
             #TODO the run_number_ledit calls _run_number_ledit_change upon textChanged, but not always. 
+            #  the ledit value is pudated in _run_number_ledit_change, so maybe call directly?
 
+            # Find the next suitable/unused run number
+            #self.data_path_layout.run_number_ledit.setText( str( self.next_available_run_number() ) )
 
         self._data_model.base_prefix = str(new_value)
         self.update_file_name()
@@ -215,22 +218,54 @@ class DataPathWidget(qt_import.QWidget):
             new_image_directory = base_image_dir
             new_proc_dir = base_proc_dir
 
-        if HWR.beamline.session.synchrotron_name == "ALBA" :
-            if HWR.beamline.collect != None  and HWR.beamline.session.get_proposal() != 'local-user':
-                HWR.beamline.collect.set_sardana_collect_env( MXCollectDir = new_image_directory )
-            #runno = 1
-            #first_img_num = 1
-            #self.data_path_layout.run_number_ledit.setText( str(runno) )
-            #while os.path.exists( self._data_model.get_image_file_name() % first_img_num ):
-                #runno += 1
-                #self.data_path_layout.run_number_ledit.setText( str(runno) )
-
+        #TODO: check where the run number is incremented by MXCuBE and remove this increment
+        #if HWR.beamline.session.synchrotron_name == "ALBA" :
+            #TODO the run_number_ledit calls _run_number_ledit_change upon textChanged, but not always. 
+            #  the ledit value is pudated in _run_number_ledit_change, so maybe call directly?
+            #self.data_path_layout.run_number_ledit.setText( str( self.next_available_run_number() ) )
 
         self._data_model.directory = new_image_directory
         self._data_model.process_directory = new_proc_dir
         colors.set_widget_color(self.data_path_layout.folder_ledit, colors.WHITE)
 
         self.pathTemplateChangedSignal.emit()
+        
+    def next_available_run_number(self):
+        """
+           first attempt in trying to find the next run number. For some reason this does not always work. 
+        """
+        current_filename = str( self.data_path_layout.file_name_value_label.text() )
+        fileroot = "_".join( current_filename.split("_")[0:-2])
+        suffix = current_filename.split("_")[-1].split(".")[-1]
+        base_image_dir = self._base_image_dir
+        prefix = str( self.data_path_layout.prefix_ledit.text() )
+        logging.getLogger("HWR").debug(
+            "base image dir %s" % str( os.path.join( base_image_dir, prefix ) )
+        )
+        if os.path.exists(os.path.join( base_image_dir, prefix)):
+            search_pattern = os.path.join( base_image_dir, prefix, fileroot ) + "_*_" + \
+                    ("%0" + str(self._data_model.precision) + "d") % 1 + "." + suffix 
+            logging.getLogger("HWR").debug(
+                "search_pattern %s" % str( search_pattern )
+            )
+            import glob
+            first_img_list = glob.glob( search_pattern )
+            logging.getLogger("HWR").debug(
+                "image list %s" % str( first_img_list )
+            )
+            if len(first_img_list ): 
+                runno_list = sorted(
+                    set( [
+                        x.split("_")[-2] for x in first_img_list
+                    ])
+                )
+                runno = int(runno_list[-1])
+                logging.getLogger("HWR").debug(
+                    "Next available run number is %s" % str( runno + 1 )
+                )
+                return runno + 1
+            else: return 1
+        else: return 1
 
     def _compression_toggled(self, state):
         if hasattr(self.parent, "_tree_brick"):
@@ -283,6 +318,12 @@ class DataPathWidget(qt_import.QWidget):
             self._data_model.directory = self._base_image_dir
 
         self.data_path_layout.base_path_ledit.setText(self._base_image_dir)
+
+        #if HWR.beamline.session.synchrotron_name == "ALBA" :
+            #TODO the run_number_ledit calls _run_number_ledit_change upon textChanged, but not always. 
+            #  the ledit value is pudated in _run_number_ledit_change, so maybe call directly?
+
+            #self.data_path_layout.run_number_ledit.setText( str( self.next_available_run_number() ) )
 
     # def set_run_number(self, run_number):
     #    """
