@@ -680,6 +680,14 @@ class DataCollectTree(qt_import.QWidget):
             view_item.init_tool_tip()
             view_item.init_processing_info()
 
+        # if the child is a diffraction plan, set the child, parent and grandparent as checked, and select it
+        # TODO: not to be done in automated mode
+        if parent.get_name() == "Diffraction plan" and  HWR.beamline.session.synchrotron_name == "ALBA":
+            task.setChecked(True)
+            task.setSelected(True)
+            parent.setChecked(True)
+
+
     def get_selected_items(self):
         """Return a list with selected items"""
         items = self.sample_tree_widget.selectedItems()

@@ -165,6 +165,7 @@ class AlbaTreeBrick(TreeBrick):
     def collect_failed(self, owner, state, message, *args):
         self.dc_tree_widget.sample_tree_widget.setEnabled(True)
         self.sample_changer_widget.setEnabled(True)
+        #self.enable_collect( True )
  
     def centring_status_changed(self, centring_status_bool):
         self.logger.debug("Centring status changed to %s", centring_status_bool)

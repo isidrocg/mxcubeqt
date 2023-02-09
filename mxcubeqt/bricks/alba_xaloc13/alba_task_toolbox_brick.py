@@ -50,6 +50,8 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                 self.ln2shower_hwobj, "ln2showerFault", self.ln2shower_fault_changed
             )
 
+        if HWR.beamline.sample_view != None:
+            HWR.beamline.sample_view.connect("gridDrawn", self.set_advanced_tool_box_widget)
 
     def ln2shower_is_pumping_changed(self, is_pumping_bool):
         self.logger.debug("alba_task_toolbox_brick ln2shower is pumping_changed, value %s " % is_pumping_bool)
@@ -68,3 +70,5 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
         self.logger.debug("alba_task_toolbox_brick path_safe_changed, value %s " % path_is_safe)
         self.task_tool_box_widget.collect_now_button.setEnabled( path_is_safe )
         
+    def set_advanced_tool_box_widget(self):
+        self.task_tool_box_widget.tool_box.setCurrentWidget( self.task_tool_box_widget.advanced_page )
