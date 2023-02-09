@@ -7264,7 +7264,7 @@
                 name: mnemonic
                 old_value: ''
                 type: string
-                value: /mini-diff
+                value: /supervisor
               type: alba_phase_brick
             - children: []
               connections: []
@@ -7466,7 +7466,71 @@
               value: 100
             type: vspacer
           - brick:
-              class: ALBA_ShuttersBrick
+              class: ALBACryostreamBrick
+              name: cryostream_brick
+            children: []
+            connections: []
+            name: cryostream_brick
+            properties:
+            - comment: Set fixed height in pixels
+              default_value: -1
+              hidden: false
+              name: fixedHeight
+              old_value: -1
+              type: integer
+              value: -1
+            - comment: Set fixed width in pixels
+              default_value: -1
+              hidden: false
+              name: fixedWidth
+              old_value: -1
+              type: integer
+              value: -1
+            - comment: ''
+              default_value: '9'
+              hidden: false
+              name: fontSize
+              old_value: '9'
+              type: string
+              value: '9'
+            - comment: Draw a frame around the widget
+              default_value: 0
+              hidden: false
+              name: frame
+              old_value: 0
+              type: boolean
+              value: 0
+            - comment: Hide widget
+              default_value: 0
+              hidden: false
+              name: hide
+              old_value: 0
+              type: boolean
+              value: 0
+            - comment: ''
+              default_value: ''
+              hidden: false
+              name: mnemonic
+              old_value: ''
+              type: string
+              value: /cryostream
+            - comment: Allow to control brick in all modes
+              default_value: 0
+              hidden: false
+              name: instanceAllowAlways
+              old_value: 0
+              type: boolean
+              value: 0
+            - comment: Allow to control brick in slave mode
+              default_value: 0
+              hidden: false
+              name: instanceAllowConnected
+              old_value: 0
+              type: boolean
+              value: 0
+            type: alba_cryostream_brick
+          - brick:
+              class: ALBAShuttersBrick
               name: shutters_brick
             children: []
             connections: []
