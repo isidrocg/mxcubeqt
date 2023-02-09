@@ -629,11 +629,12 @@ class CreateTaskBase(qt_import.QWidget):
         )
 
         if path_conflict:
-            logging.getLogger("GUI").error(
-                "The current path settings will overwrite data "
-                + "from another task. Correct the problem before "
-                + "adding to queue"
-            )
+            if HWR.beamline.session.synchrotron_name != "ALBA":
+                logging.getLogger("GUI").error(
+                    "The current path settings will overwrite data "
+                    + "from another task. Correct the problem before "
+                    + "adding to queue"
+                )
             result = False
 
         if self._acq_widget is not None:

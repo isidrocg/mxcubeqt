@@ -548,6 +548,7 @@ class GUISupervisor(qt_import.QWidget):
             if main_widget:
                 set_splash_screen(None)
                 self.splash_screen.finish(main_widget)
+                main_widget.setWindowTitle("MXCuBE") # is this the right way to set it? The yml has a name for the window but this is apparently not used 
             del self.splash_screen
         except BaseException:
             logging.getLogger().exception("exception while loading GUI file")

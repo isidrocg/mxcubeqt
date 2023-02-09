@@ -20,7 +20,7 @@
 
 import logging
 from mxcubeqt.bricks.tree_brick import TreeBrick
-from mxcubeqt.utils import qt_import
+from mxcubeqt.utils import queue_item, qt_import
 from mxcubecore import HardwareRepository as HWR
 import os
 
@@ -37,14 +37,14 @@ class AlbaTreeBrick(TreeBrick):
     def __init__(self, *args):
         TreeBrick.__init__(self, *args)
         self.logger = logging.getLogger("HWR")
-        self.logger.debug("AlbaTreeBrick.__init__()")
+        self.logger.info("Initializing AlbaTreeBrick")
         
-        self.pick_button = qt_import.QPushButton('Mount & Pick')
+        self.pick_button = qt_import.QPushButton('Mount && Pick')
         self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
-
+        
         #Add the button to the layout created in tree_brick.TreeBrick,
         #below ISPyB button
-        #self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
+        self.sample_changer_widget.gridLayout_2.addWidget(self.pick_button, 3, 3)
         self.logger.debug( self.pick_button.text() )
         
         # Slots -----------------------------------------------------------------
@@ -75,45 +75,49 @@ class AlbaTreeBrick(TreeBrick):
             )
 
 
+        self.pick_button.clicked.connect( self.pick )
+
     def pick(self):
+        #TODO: move pick sample selection to CatsXaloc
+        #self.logger.info( "alba_tree_brick pick" )
+        next_load_sample_location = None
         if HWR.beamline.sample_changer is not None:
-            pass
-            #if not items[0].get_model().free_pin_mode:
-                #HWR.beamline.sample_changer.mount_and_pick = True
-                ## now find the next sample. Possible useful functions are
-                ## dc_tree_widget get_mounted_sample_item, samples_from_lims
-                ## HWR ISPyBClient __find_sample
-                
-                
-                    #lid = HWR.beamline.sample_changer.cats_loaded_lid
-                    #sample = HWR.beamline.sample_changer.cats_loaded_num
-                    #sample2 = HWR.beamline.sample_changer.chnPickedSample.getValue()
-                    #self.logger.info("do_pick: Lid={}, sample={}, sample2={}".format(lid, sample, sample2))
-                #items[0].setText(1, "Loading sample...")
-                #self.sample_centring_result = gevent.event.AsyncResult()
-                #try:
-                    #if self.show_sc_during_mount:
-                        #self.tree_brick.sample_mount_started.emit()
-                    #queue_entry.mount_sample(
-                        #items[0],
-                        #items[0].get_model(),
-                        #self.centring_done,
-                        #self.sample_centring_result
-                    #)
-                    #if self.close_kappa:
-                        #HWR.beamline.diffractometer.close_kappa()
-            #HWR.beamline.sample_changer.do_pick()
-                #except Exception as e:
-                    #items[0].setText(1, "Error loading")
-                    #items[0].set_background_color(3)
-                    #msg = "Error loading sample, " + str(e)
-                    #logging.getLogger("GUI").error(msg)
-                #finally:
-                    #self.enable_collect(True)
-                    #self.tree_brick.sample_mount_finished.emit()
-            #else:
-                #logging.getLogger("GUI").\
-                    #info('Its not possible to mount samples in free pin mode')
+            if self.sample_changer_widget.filter_cbox.currentIndex() == 1: # only for sample changer with pins
+                sample_lid_on_load_tool = HWR.beamline.sample_changer._chnLidSampleOnTool.get_value()
+                sample_num_on_load_tool = HWR.beamline.sample_changer._chnNumSampleOnTool.get_value()
+                if sample_lid_on_load_tool != -1 and sample_num_on_load_tool != -1: # sample on tool, next to be loaded comes after tool
+                    next_load_sample_location = HWR.beamline.sample_changer.lidsample_to_basketsample(
+                        sample_lid_on_load_tool, sample_num_on_load_tool 
+                    )
+                else: # no sample on tool: sample needs to be loaded, followed by a pick.
+                    next_load_sample_location = HWR.beamline.lims.next_sample_by_SC_position( 
+                        self.dc_tree_widget.get_mounted_sample_item().get_model().location 
+                    )
+                if next_load_sample_location != None: 
+                    if not -1 in next_load_sample_location:
+                        next_pick_sample_location = HWR.beamline.lims.next_sample_by_SC_position( next_load_sample_location ) # should return None is no available next sample
+                        if next_pick_sample_location is not -1: #no pick when reaching the end of the samples in the dewar
+                            HWR.beamline.sample_changer.set_next_pick_sample( next_pick_sample_location )
+                        self.dc_tree_widget.sample_tree_widget.clearSelection()
+                        #TODO: select the sample item to be mounted next
+                        self.get_dc_tree_item_by_location( next_load_sample_location ).setSelected(True)
+                        self.dc_tree_widget.mount_sample()
+
+    def get_dc_tree_item_by_location(self, location):
+        """Updates sample icon"""
+
+        it = qt_import.QTreeWidgetItemIterator(self.dc_tree_widget.sample_tree_widget)
+        item = it.value()
+
+        while item:
+            #self.logger.info("item %s, type %s" % (item, type(item) ) )
+            if isinstance(item, queue_item.SampleQueueItem):
+                if item.get_model().location == location:
+                    return item
+            it += 1
+            item = it.value()
+            
+        return None
 
     def enable_pick(self):
         self.pick_button.setEnabled(True)
@@ -161,12 +165,16 @@ class AlbaTreeBrick(TreeBrick):
     def collect_failed(self, owner, state, message, *args):
         self.dc_tree_widget.sample_tree_widget.setEnabled(True)
         self.sample_changer_widget.setEnabled(True)
+        #self.enable_collect( True )
  
     def centring_status_changed(self, centring_status_bool):
+        self.logger.debug("Centring status changed to %s", centring_status_bool)
         self.setEnabled(not centring_status_bool)
         self.dc_tree_widget.setEnabled(not centring_status_bool)
+        self.dc_tree_widget.sample_tree_widget.setEnabled(not centring_status_bool)
         
     def centring_successful(self, method_name, centring_status_dict):
+        self.logger.debug("Centring Successful, enabling tree widgets")
         self.centring_status_changed(False) # False means not centering
 
     def ln2shower_is_pumping_changed( self, is_pumping_bool ):

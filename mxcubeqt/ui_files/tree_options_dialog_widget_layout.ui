@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Confrim collect</string>
+   <string>Confirm collect</string>
   </property>
   <layout class="QHBoxLayout">
    <property name="spacing">

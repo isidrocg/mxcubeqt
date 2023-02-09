@@ -569,9 +569,8 @@ class DataCollectTree(qt_import.QWidget):
                         sample_changer.unload(22, location, wait=False)
                 except Exception as e:
                     items[0].setText(1, "Error in unloading")
-                    msg = "Error unloading sample, " + str(3) #please check" +\
-                    #    " sample changer: " + str(e)
-                    logging.getLogger("GUI").error(msg)
+                    msg = "Error unloading sample, error " + str(e)
+                    logging.getLogger("HWR").error(msg)
 
                 robot_action_dict["endTime"] = time.strftime("%Y-%m-%d %H:%M:%S")
                 if not sample_changer.has_loaded_sample():
@@ -680,6 +679,14 @@ class DataCollectTree(qt_import.QWidget):
         if isinstance(task, queue_model_objects.DataCollection):
             view_item.init_tool_tip()
             view_item.init_processing_info()
+
+        # if the child is a diffraction plan, set the child, parent and grandparent as checked, and select it
+        # TODO: not to be done in automated mode
+        if parent.get_name() == "Diffraction plan" and  HWR.beamline.session.synchrotron_name == "ALBA":
+            task.setChecked(True)
+            task.setSelected(True)
+            parent.setChecked(True)
+
 
     def get_selected_items(self):
         """Return a list with selected items"""
