@@ -646,6 +646,7 @@ class DataCollectTree(qt_import.QWidget):
            If entry is a collection then it is selected and
            selection callback is raised.
         """
+
         view_item = None
         parent_tree_item = self.get_item_by_model(parent)
 
@@ -682,11 +683,11 @@ class DataCollectTree(qt_import.QWidget):
 
         # if the child is a diffraction plan, set the child, parent and grandparent as checked, and select it
         # TODO: not to be done in automated mode
-        if parent.get_name() == "Diffraction plan" and  HWR.beamline.session.synchrotron_name == "ALBA":
-            task.setChecked(True)
-            task.setSelected(True)
-            parent.setChecked(True)
-
+        if HWR.beamline.session.synchrotron_name == "ALBA":
+            if "Diffraction plan" in parent.get_name(): #TODO: selecting these items causes the collection to be executed immediately. Something with the queue I guess
+                #parent_tree_item.setCheckState(0, True)
+                #view_item.setCheckState(0, True)
+                pass
 
     def get_selected_items(self):
         """Return a list with selected items"""
