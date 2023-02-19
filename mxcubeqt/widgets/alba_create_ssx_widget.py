@@ -69,12 +69,14 @@ class CreateSsxWidget(CreateTaskBase):
         self.flow_value_label.setAlignment(qt_import.Qt.AlignRight)
         self.flow_value_label.setStyleSheet("font-size: 18px;"#font-weight: bold;"
                                                " color: #00f")
+
+        self.required_flow = qt_import.QLineEdit()
         # TODO Check this, connect label text edited with emit signal to change 
         # pump flow. Maybe better define a variable to hold the value and emit 
         # value if changes
-        # self.requiredflow_validator = qt_import.QDoubleValidator(
-        #     0.0001, 1, 4, self.flow_value_label
-        # )
+        self.requiredflow_validator = qt_import.QDoubleValidator(
+            0.1, 1000, 1, self.required_flow
+        )
 
         self.state_text_label = qt_import.QLabel("Pump status:")
         self.state_text_value_label = qt_import.QLabel()
@@ -95,7 +97,7 @@ class CreateSsxWidget(CreateTaskBase):
         _glayout.addWidget(self.flow_label, 0, 0)
         _glayout.addWidget(self.flow_value_label, 0, 1)
         # Here add a validation box to set desired flow
-        # _glayout.addWidget(self.requiredflow_validator, 0, 2)
+        _glayout.addWidget(self.required_flow, 0, 2)
         _glayout.addWidget(self.flow_control_checkbox, 0, 3)
 
 

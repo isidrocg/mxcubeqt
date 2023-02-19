@@ -71,6 +71,12 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
             self.task_tool_box_widget.ssx_page.pump_start_button.clicked.connect(
                 self.start_stop_pump
                 )
+
+            # TODO Add here action to set flow when finish editing requiredflow_validator
+            self.task_tool_box_widget.ssx_page.required_flow.returnPressed.connect(
+                self.set_flow
+                )
+            # self.new_value_ledit.textChanged.connect(self.input_field_changed)
   
             
             self.logger.info("serial_pump_hwobj connected")
@@ -144,5 +150,22 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
     def start_stop_pump(self, value):
         self.logger.info("Button pressed, toggling pump")
         self.serial_pump_hwobj.start_stop_pump()
+
+    def set_flow(self):
+        new_flow = self.task_tool_box_widget.ssx_page.required_flow.text()
+        new_flow_ml_min = float(new_flow) / 1000
+        self.logger.info("This will set pump flow to %s" % str(new_flow))
+
+        if (
+            self.task_tool_box_widget.ssx_page.requiredflow_validator.validate(
+                new_flow, 0
+                )[0] == qt_import.QValidator.Acceptable
+            ):
+
+            self.serial_pump_hwobj.channelflow.set_value(new_flow_ml_min)
+            self.task_tool_box_widget.ssx_page.required_flow.setText("")
+            # colors.set_widget_color(
+            #     self.new_value_ledit, colors.LINE_EDIT_ACTIVE, qt_import.QPalette.Base
+            # )
 
             
