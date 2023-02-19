@@ -88,8 +88,7 @@ class CreateSsxWidget(CreateTaskBase):
         self.pump_pressure_value_label.setAlignment(qt_import.Qt.AlignRight)
         self.pump_pressure_value_label.setStyleSheet("font-size: 18px;")
         
-        self.pump_start_button = qt_import.QPushButton('Start')
-        
+        self.pump_start_button = qt_import.QPushButton('Start')        
         
         self.flow_control_checkbox = qt_import.QCheckBox('Flow Control')
 
@@ -112,6 +111,42 @@ class CreateSsxWidget(CreateTaskBase):
         
         _glayout.setSpacing(1)
         _glayout.setContentsMargins(8, 8, 8, 8)
+
+        self._sample_widget = qt_import.QGroupBox("Sample", self)
+        _glayout2 = qt_import.QGridLayout()
+        self._sample_widget.setLayout(_glayout2)
+
+        self.reservoir_label = qt_import.QLabel("Reservoir:")
+
+        self.reservoir = qt_import.QComboBox()
+        self.reservoir.addItems(["40 ul", "20 ul"])
+
+        self.sample_name_label = qt_import.QLabel("Sample:")
+        self.sample_name = qt_import.QLineEdit()
+
+        self.sample_volume_label = qt_import.QLabel("Volume:")
+        self.sample_volume = qt_import.QLineEdit()
+
+
+        _glayout2.addWidget(self.sample_name_label, 0, 0)
+        _glayout2.addWidget(self.sample_name, 0, 1)
+
+        _glayout2.addWidget(self.sample_volume_label, 0, 2)
+        _glayout2.addWidget(self.sample_volume, 0, 3)
+
+        _glayout2.addWidget(self.reservoir_label, 1, 0)
+        _glayout2.addWidget(self.reservoir, 1, 1)
+
+        _glayout2.setSpacing(1)
+        _glayout2.setContentsMargins(8, 8, 8, 8)
+
+
+        # self.flow_value_label = qt_import.QLabel()
+        # self.flow_value_label.setAlignment(qt_import.Qt.AlignRight)
+        # self.flow_value_label.setStyleSheet("font-size: 18px;"#font-weight: bold;"
+        #                                        " color: #00f")
+
+        # self.required_flow = qt_import.QLineEdit()
 
         
         self._acq_widget = AcquisitionSsxWidget(
@@ -140,6 +175,7 @@ class CreateSsxWidget(CreateTaskBase):
         # Layout --------------------------------------------------------------
         _main_vlayout = qt_import.QVBoxLayout(self)
         _main_vlayout.addWidget(self._pump_widget)
+        _main_vlayout.addWidget(self._sample_widget)
         _main_vlayout.addWidget(self._acq_widget)
         _main_vlayout.addWidget(self._data_path_widget)
         _main_vlayout.addWidget(self._col_seq_widget)
