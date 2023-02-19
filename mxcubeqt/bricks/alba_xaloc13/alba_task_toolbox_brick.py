@@ -18,8 +18,8 @@
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-
-from mxcubeqt.bricks.task_toolbox_brick import TaskToolboxBrick
+# from mxcubeqt.bricks.task_toolbox_brick import TaskToolboxBrick
+from mxcubeqt.bricks.alba_task_toolbox_brick import TaskToolboxBrick
 from mxcubeqt.utils import colors, qt_import
 
 from mxcubecore import HardwareRepository as HWR
@@ -50,6 +50,36 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                 self.ln2shower_hwobj, "ln2showerFault", self.ln2shower_fault_changed
             )
 
+        self.serial_pump_hwobj = self.get_hardware_object("/serialpump")
+
+
+        if self.serial_pump_hwobj is not None:
+            self.setEnabled(True)
+            #self.connect(self.serial_pump_hwobj, SIGNAL('valuesChanged'),
+                            #self.set_value)
+
+            # TODO Check why needs an initial update of parameters to show text 
+            # on labels on startup
+            self.connect(self.serial_pump_hwobj, 'flowChanged',
+                            self.flow_update)
+            self.connect(self.serial_pump_hwobj, 'pressureChanged',
+                            self.pressure_update)
+            self.connect(self.serial_pump_hwobj, 'pumpingChanged',
+                            self.pump_state_update)
+            # self.connect(self.serial_pump_hwobj, 'togglePump',
+            #                 self.start_stop_pump)
+            self.task_tool_box_widget.ssx_page.pump_start_button.clicked.connect(
+                self.start_stop_pump
+                )
+  
+            
+            self.logger.info("serial_pump_hwobj connected")
+            #self.serial_pump_hwobj.update_values(self.serial_pump_hwobj.flow)
+        else:
+            self.setEnabled(False)
+
+
+
 
     def ln2shower_is_pumping_changed(self, is_pumping_bool):
         self.logger.debug("alba_task_toolbox_brick ln2shower is pumping_changed, value %s " % is_pumping_bool)
@@ -68,3 +98,51 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
         self.logger.debug("alba_task_toolbox_brick path_safe_changed, value %s " % path_is_safe)
         self.task_tool_box_widget.collect_now_button.setEnabled( path_is_safe )
         
+    def flow_update(self, value):
+            """
+            Descript. :
+            Args.     :
+            Return.   : 
+            """
+            flow = value
+            self.logger.info("flow_update: flow %s" % str(flow))
+            txt = '??? ul/min' if flow is None else '<b>%s</b> ul/min'% str(flow)
+            self.task_tool_box_widget.ssx_page.flow_value_label.setText(txt)
+            
+    def pressure_update(self, value):
+        
+        pressure = value
+        
+        self.logger.info("pressure_update: pressure %s" % str(pressure))
+
+        self.task_tool_box_widget.ssx_page.pump_pressure_value_label.setText('<b>%s</b> bar'% str(pressure))
+        flow_control = self.task_tool_box_widget.ssx_page.flow_control_checkbox.isChecked()
+
+        #Allow flow control, controlled by the checkbox value
+        #Flow will be recomputed at each pressure change.
+        if flow_control:
+            self.serial_pump_hwobj.flow_control(pressure)
+        
+    def pump_state_update(self, value):
+        #replace set_value by this function in signal connection of 
+        #the pump state, then use self,value as arguments and the pumping = self.serial_pump_hwobj.getPumping()
+        #may be replaced by value
+        pumping = value
+        self.logger.info("set_value pumping %s" % str(pumping))
+
+        # self.state_text_value_label.setText(str(pumping))
+        if pumping:
+            self.task_tool_box_widget.ssx_page.pump_start_button.setText("Pause")
+            self.task_tool_box_widget.ssx_page.state_text_value_label.setText('Pumping')
+        elif not pumping:
+            self.task_tool_box_widget.ssx_page.pump_start_button.setText("Start")
+            self.task_tool_box_widget.ssx_page.state_text_value_label.setText('Paused')
+        else:
+            self.task_tool_box_widget.ssx_page.pump_start_button.setText("Error")
+            self.task_tool_box_widget.ssx_page.state_text_value_label.setText('Error')
+
+    def start_stop_pump(self, value):
+        self.logger.info("Button pressed, toggling pump")
+        self.serial_pump_hwobj.start_stop_pump()
+
+            
