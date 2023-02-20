@@ -95,21 +95,20 @@ class CreateSsxWidget(CreateTaskBase):
 
         _glayout.addWidget(self.flow_label, 0, 0)
         _glayout.addWidget(self.flow_value_label, 0, 1)
-        # Here add a validation box to set desired flow
         _glayout.addWidget(self.required_flow, 0, 2)
-        _glayout.addWidget(self.flow_control_checkbox, 0, 3)
+
 
 
 
         _glayout.addWidget(self.pump_pressure_label, 1, 0)
         _glayout.addWidget(self.pump_pressure_value_label, 1, 1)
-        # Here add a validation box to set desired pressure
         
         _glayout.addWidget(self.state_text_label, 2, 0)
         _glayout.addWidget(self.state_text_value_label, 2, 1)
         _glayout.addWidget(self.pump_start_button, 2, 2)
+        _glayout.addWidget(self.flow_control_checkbox, 2, 3)
         
-        _glayout.setSpacing(1)
+        _glayout.setSpacing(5)
         _glayout.setContentsMargins(8, 8, 8, 8)
 
         self._sample_widget = qt_import.QGroupBox("Sample", self)
@@ -135,6 +134,11 @@ class CreateSsxWidget(CreateTaskBase):
         #Angstrom u"\u212B"
         #Mu u"\u00B5"
 
+        # TODO Add Jet speed and remaining/pumped volume or percentage remaining
+        #  or time remaining
+
+        self.jet_speed_label = qt_import.QLabel(u"Jet Speed: 0 \u00B5m/s")
+
 
 
 
@@ -149,8 +153,10 @@ class CreateSsxWidget(CreateTaskBase):
 
         _glayout2.addWidget(self.capillary_id_label, 1, 2)
         _glayout2.addWidget(self.capillary_id, 1, 3)
+        _glayout2.addWidget(self.jet_speed_label, 2, 0)
+        
 
-        _glayout2.setSpacing(1)
+        _glayout2.setSpacing(5)
         _glayout2.setContentsMargins(8, 8, 8, 8)
 
 

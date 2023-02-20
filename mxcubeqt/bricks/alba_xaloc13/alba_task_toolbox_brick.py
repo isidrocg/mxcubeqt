@@ -111,9 +111,39 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
             Return.   : 
             """
             flow = value
+            reservoir_str = unicode(
+                self.task_tool_box_widget.ssx_page.reservoir.currentText()
+                )
+            reservoir = int(reservoir_str.split()[0])
+
+            capillary_id_str = unicode(
+                self.task_tool_box_widget.ssx_page.capillary_id.currentText()
+                )
+            capillary_id = int(capillary_id_str.split()[0])
+
+
             self.logger.info("flow_update: flow %s" % str(flow))
             txt = '??? ul/min' if flow is None else u'<b>%s</b> \u00B5l/min'% str(flow)
             self.task_tool_box_widget.ssx_page.flow_value_label.setText(txt)
+
+            # Here, update jet speed using HO function get_jet_speed(self, 
+            # pump_flow, reservoir, capillary_id)giving the values of 
+            # capillary ID and reservoir volume from GUI. The result, setText to 
+            # jet_speed label. 
+            jet_speed = self.serial_pump_hwobj.get_jet_speed(
+                flow, reservoir, capillary_id
+                )
+            
+            jet_txt = u"Jet Speed: %s \u00B5m/s" % str(jet_speed)
+
+
+
+            self.task_tool_box_widget.ssx_page.jet_speed_label.setText(jet_txt)
+
+            # TODO connect this function to action when editting reservoir or 
+            # capillary_id comboboxes.
+            
+
             
     def pressure_update(self, value):
         
