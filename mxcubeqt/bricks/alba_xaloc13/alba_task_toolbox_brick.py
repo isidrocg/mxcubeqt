@@ -72,7 +72,7 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                 self.start_stop_pump
                 )
 
-            # TODO Add here action to set flow when finish editing requiredflow_validator
+            # TODO Add here action to set flow when finish editing required_flow
             self.task_tool_box_widget.ssx_page.required_flow.returnPressed.connect(
                 self.set_flow
                 )
@@ -112,7 +112,7 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
             """
             flow = value
             self.logger.info("flow_update: flow %s" % str(flow))
-            txt = '??? ul/min' if flow is None else '<b>%s</b> ul/min'% str(flow)
+            txt = '??? ul/min' if flow is None else u'<b>%s</b> \u00B5l/min'% str(flow)
             self.task_tool_box_widget.ssx_page.flow_value_label.setText(txt)
             
     def pressure_update(self, value):

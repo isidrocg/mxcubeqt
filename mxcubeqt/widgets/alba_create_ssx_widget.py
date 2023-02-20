@@ -116,16 +116,26 @@ class CreateSsxWidget(CreateTaskBase):
         _glayout2 = qt_import.QGridLayout()
         self._sample_widget.setLayout(_glayout2)
 
-        self.reservoir_label = qt_import.QLabel("Reservoir:")
-
-        self.reservoir = qt_import.QComboBox()
-        self.reservoir.addItems(["40 ul", "20 ul"])
-
         self.sample_name_label = qt_import.QLabel("Sample:")
         self.sample_name = qt_import.QLineEdit()
 
         self.sample_volume_label = qt_import.QLabel("Volume:")
         self.sample_volume = qt_import.QLineEdit()
+
+        self.reservoir_label = qt_import.QLabel("Reservoir:")
+
+        self.reservoir = qt_import.QComboBox()
+        self.reservoir.addItems([u"40 \u00B5l", u"20 \u00B5l"])
+
+        self.capillary_id_label = qt_import.QLabel("Capillary:")
+
+        self.capillary_id = qt_import.QComboBox()
+        self.capillary_id.addItems([u"50 \u00B5m", u"100 \u00B5m"])
+
+        #Angstrom u"\u212B"
+        #Mu u"\u00B5"
+
+
 
 
         _glayout2.addWidget(self.sample_name_label, 0, 0)
@@ -136,6 +146,9 @@ class CreateSsxWidget(CreateTaskBase):
 
         _glayout2.addWidget(self.reservoir_label, 1, 0)
         _glayout2.addWidget(self.reservoir, 1, 1)
+
+        _glayout2.addWidget(self.capillary_id_label, 1, 2)
+        _glayout2.addWidget(self.capillary_id, 1, 3)
 
         _glayout2.setSpacing(1)
         _glayout2.setContentsMargins(8, 8, 8, 8)
