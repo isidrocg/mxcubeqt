@@ -77,6 +77,9 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                 self.set_flow
                 )
             # self.new_value_ledit.textChanged.connect(self.input_field_changed)
+
+            # TODO call here values update on startup.
+            self.serial_pump_hwobj.update_values()
   
             
             self.logger.info("serial_pump_hwobj connected")
@@ -157,7 +160,18 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
         #Allow flow control, controlled by the checkbox value
         #Flow will be recomputed at each pressure change.
         if flow_control:
-            self.serial_pump_hwobj.flow_control(pressure)
+            target_pressure = float(
+                self.task_tool_box_widget.ssx_page.target_presure_value.text()
+            )
+            max_flow = float(
+                self.task_tool_box_widget.ssx_page.max_flow_value.text()
+            )
+            kp = float(
+                self.task_tool_box_widget.ssx_page.kp_value.text()
+            )
+            self.serial_pump_hwobj.flow_control(
+                pressure, target_pressure, max_flow, kp
+            )
         
     def pump_state_update(self, value):
         #replace set_value by this function in signal connection of 
@@ -183,16 +197,17 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
 
     def set_flow(self):
         new_flow = self.task_tool_box_widget.ssx_page.required_flow.text()
-        new_flow_ml_min = float(new_flow) / 1000
-        self.logger.info("This will set pump flow to %s" % str(new_flow))
+        # new_flow_ml_min = float(new_flow) / 1000
+        
 
         if (
             self.task_tool_box_widget.ssx_page.requiredflow_validator.validate(
                 new_flow, 0
                 )[0] == qt_import.QValidator.Acceptable
             ):
-
-            self.serial_pump_hwobj.channelflow.set_value(new_flow_ml_min)
+            self.logger.info("This will set pump flow to %s" % str(new_flow))
+            # self.serial_pump_hwobj.channelflow.set_value(new_flow_ml_min)
+            self.serial_pump_hwobj.set_flow(float(new_flow))
             self.task_tool_box_widget.ssx_page.required_flow.setText("")
             # colors.set_widget_color(
             #     self.new_value_ledit, colors.LINE_EDIT_ACTIVE, qt_import.QPalette.Base
