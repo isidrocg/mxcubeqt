@@ -134,6 +134,7 @@ class AlbaShuttersBrick(BaseWidget):
                 )
 
             self.fast_shut_ho = self.get_hardware_object(new_value)
+            self.fast_state_changed( self.fast_shut_ho.get_state() )
 
             if self.fast_shut_ho is not None:
                 self.connect(
@@ -151,6 +152,7 @@ class AlbaShuttersBrick(BaseWidget):
                 )
 
             self.slow_shut_ho = self.get_hardware_object(new_value)
+            self.slow_state_changed( self.slow_shut_ho.get_state() )
 
             if self.slow_shut_ho is not None:
                 self.connect(
@@ -168,6 +170,7 @@ class AlbaShuttersBrick(BaseWidget):
                 )
 
             self.photon_shut_ho = self.get_hardware_object(new_value)
+            self.photon_state_changed( self.photon_shut_ho.get_state() )
 
             if self.photon_shut_ho is not None:
                 self.connect(
@@ -185,6 +188,7 @@ class AlbaShuttersBrick(BaseWidget):
                 )
 
             self.fe_ho = self.get_hardware_object(new_value)
+            self.frontend_state_changed( self.fe_ho.get_state() )
 
             if self.fe_ho is not None:
                 self.connect(
