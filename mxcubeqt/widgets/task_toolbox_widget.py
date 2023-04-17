@@ -342,7 +342,8 @@ class TaskToolBoxWidget(qt_import.QWidget):
         current_page = self.tool_box.currentWidget()
         current_page.selection_changed(items)
 
-    def create_task_button_click(self):
+    def create_task_button_click(self): #ADD TO QUEUE
+        logging.getLogger("HWR").debug("Create task button click" )
         if self.tool_box.currentWidget().approve_creation():
             items = self.tree_brick.get_selected_items()
 
@@ -396,6 +397,7 @@ class TaskToolBoxWidget(qt_import.QWidget):
                             for shape in shapes:
                                 self.create_task(task_model, shape)
                         else:
+                            logging.getLogger("HWR").debug("Creating new task" )
                             self.create_task(task_model)
                 self.tree_brick.select_last_added_item()
                 self.tree_brick.update_enable_collect()
@@ -445,9 +447,9 @@ class TaskToolBoxWidget(qt_import.QWidget):
             ):
                 new_node.centred_position.snapshot_image = new_snapshot
 
-            HWR.beamline.queue_model.add_child(
-                task_node.get_parent(), new_node
-            )
+                HWR.beamline.queue_model.add_child(
+                    task_node.get_parent(), new_node
+                )
 
     def collect_now_button_click(self):
         if not self.tree_brick.dc_tree_widget.enable_collect_condition:
@@ -456,6 +458,13 @@ class TaskToolBoxWidget(qt_import.QWidget):
         selected_items = self.tree_brick.get_selected_items()
         mounted_sample_item = self.tree_brick.dc_tree_widget.get_mounted_sample_item()
         will_mount_sample = False
+        diff_plan_item = None
+
+        tool_box_page_is_collect = False
+        if self.tool_box.itemText(self.previous_page_index) == "Standard Collection" or \
+                self.tool_box.itemText(self.previous_page_index ) == "Helical Collection":
+            logging.getLogger("HWR").debug("Diffraction task page active")
+            tool_box_page_is_collect = True
 
         for item in selected_items:
             if isinstance(item, (
@@ -465,9 +474,25 @@ class TaskToolBoxWidget(qt_import.QWidget):
                 if item != mounted_sample_item:
                     will_mount_sample = True
             else:
+                deselect_diff_plan = False
                 sample_item = item.get_sample_view_item()
                 if sample_item != mounted_sample_item:
                     will_mount_sample = True
+                if "Diffraction plan" in item.get_model().get_display_name():
+                    if tool_box_page_is_collect:
+                        logging.getLogger("HWR").debug("Diffraction plan selected")
+                        diff_plan_item = item
+                    else:
+                        deselect_diff_plan = True
+                if "Diffraction plan" in item.parent().get_model().get_display_name():
+                    if tool_box_page_is_collect:
+                        logging.getLogger("HWR").debug("Diffraction plan selected")
+                        diff_plan_item = item.parent()
+                    else:
+                        deselect_diff_plan = True
+                if deselect_diff_plan:
+                    item.setSelected(False)
+                    sample_item.setSelected(True)
 
         if will_mount_sample:
             conf_msg = "One or several not mounted samples are selected.\n" +\
@@ -481,8 +506,12 @@ class TaskToolBoxWidget(qt_import.QWidget):
             ):
                 return
 
-
-        self.create_task_button_click()
+        # avoid duplicating data collection when clicking collect now for a diffraction plan
+        if diff_plan_item is None:
+            self.create_task_button_click()
+        else:
+            diff_plan_item.setCheckState(0, True)
+            
         collect_items = []
         for item in self.tree_brick.dc_tree_widget.get_collect_items():
             if isinstance(item, (
@@ -497,6 +526,7 @@ class TaskToolBoxWidget(qt_import.QWidget):
                 item.get_model().set_enabled(False)
             else:
                 collect_items.append(item)
+                
         if self.tree_brick.dc_tree_widget.enable_collect_condition:
             self.tree_brick.dc_tree_widget.collect_items(collect_items)
         else:
