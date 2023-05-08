@@ -17,6 +17,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+
 from mxcubeqt.bricks.cats_maint_brick import CatsMaintBrick
 from mxcubeqt.utils import sample_changer_helper, qt_import
 
