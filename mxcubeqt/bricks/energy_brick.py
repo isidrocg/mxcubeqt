@@ -17,6 +17,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with MXCuBE.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
 from mxcubeqt.utils import icons, colors, qt_import
 from mxcubeqt.base_components import BaseWidget
 
@@ -178,8 +180,10 @@ class EnergyBrick(BaseWidget):
         self.wavelength_ledit.setText("%s %s" % (wavelength_value_str, u"\u212B"))
 
     def state_changed(self, state):
+        logging.getLogger("HWR").debug("Energy state_changed, state is %s" % state)
         self.setEnabled(HWR.beamline.energy.is_ready())
         BaseWidget.set_status_info("status", "", "")
+        self._update_ledit_color(colors.COLOR_STATES[state])
 
     def status_info_changed(self, status_info):
         self.status_ledit.setText(status_info)
@@ -235,3 +239,7 @@ class EnergyBrick(BaseWidget):
 
     def stop_clicked(self):
         HWR.beamline.energy.stop()
+
+    def _update_ledit_color(self, color):
+        logging.getLogger("HWR").debug("new color %s" % color)
+        colors.set_widget_color(self.new_value_ledit, color, qt_import.QPalette.Base)
