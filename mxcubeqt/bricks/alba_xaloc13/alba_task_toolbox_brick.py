@@ -33,6 +33,8 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
     def __init__(self, *args):
         TaskToolboxBrick.__init__(self, *args)
         self.logger = logging.getLogger("HWR.XalocLN2Shower")
+        # self.logger_ln2 = logging.getLogger("HWR.XalocLN2Shower")
+        # self.logger_pump = logging.getLogger("HWR.XalocLN2Shower")
         self.logger.debug( "AlbaTaskToolboxBrick.__init__()" )
          
         self.ln2shower_hwobj = self.get_hardware_object("/ln2shower")
@@ -68,6 +70,8 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                             self.pump_state_update)
             # self.connect(self.serial_pump_hwobj, 'togglePump',
             #                 self.start_stop_pump)
+            self.connect(self.serial_pump_hwobj, 'pressureChanged',
+                            self.consumed_sample)
             self.task_tool_box_widget.ssx_page.pump_start_button.clicked.connect(
                 self.start_stop_pump
                 )
@@ -77,6 +81,9 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                 self.set_flow
                 )
             # self.new_value_ledit.textChanged.connect(self.input_field_changed)
+            self.task_tool_box_widget.ssx_page.sample_volume.returnPressed.connect(
+                self.set_sample_volume
+                )
 
             # TODO call here values update on startup.
             self.serial_pump_hwobj.update_values()
@@ -126,7 +133,7 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
 
 
             self.logger.info("flow_update: flow %s" % str(flow))
-            txt = u'??? \u00B5l/min' if flow is None else u'<b>%s</b> \u00B5l/min'% str(flow)
+            txt = u'???' if flow is None else '<b>%s</b>'% str(flow)
             self.task_tool_box_widget.ssx_page.flow_value_label.setText(txt)
 
             # Here, update jet speed using HO function get_jet_speed(self, 
@@ -137,7 +144,7 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
                 flow, reservoir, capillary_id
                 )
             
-            jet_txt = u"%s \u00B5m/s" % str(jet_speed)
+            jet_txt = str(jet_speed)
 
 
 
@@ -152,9 +159,9 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
         
         pressure = value
         
-        self.logger.info("pressure_update: pressure %s" % str(pressure))
+        # self.logger.info("pressure_update: pressure %s" % str(pressure))
 
-        self.task_tool_box_widget.ssx_page.pump_pressure_value_label.setText('<b>%s</b> bar'% str(pressure))
+        self.task_tool_box_widget.ssx_page.pump_pressure_value_label.setText('<b>%s</b>'% str(pressure))
         flow_control = self.task_tool_box_widget.ssx_page.flow_control_checkbox.isChecked()
 
         #Allow flow control, controlled by the checkbox value
@@ -213,4 +220,22 @@ class AlbaTaskToolboxBrick(TaskToolboxBrick):
             #     self.new_value_ledit, colors.LINE_EDIT_ACTIVE, qt_import.QPalette.Base
             # )
 
+    def set_sample_volume(self):
+        new_sample_volume = self.task_tool_box_widget.ssx_page.sample_volume.text()
+        # new_flow_ml_min = float(new_flow) / 1000
+
+        
+
+        if (
+            self.task_tool_box_widget.ssx_page.requiredflow_validator.validate(
+                new_sample_volume, 0
+                )[0] == qt_import.QValidator.Acceptable
+            ):
+            self.logger.info("This will set sample to %s" % str(new_sample_volume))
+            self.serial_pump_hwobj.sample_vol = float(new_sample_volume)
+
+
+    def consumed_sample(self, value):
+        pass
+        # self.logger.info("consumed_sample %s" % str(value))
             

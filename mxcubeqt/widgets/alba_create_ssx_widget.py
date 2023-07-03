@@ -64,14 +64,13 @@ class CreateSsxWidget(CreateTaskBase):
         
         self._pump_widget.setLayout(_glayout)
 
-        self.flow_label = qt_import.QLabel("Pump flow:")
+        self.flow_label = qt_import.QLabel(u"Flow (\u00B5l/min):")
 
 
-        self.flow_value_label = qt_import.QLabel(u'--- \u00B5l/min')
-        self.flow_value_label.setAlignment(qt_import.Qt.AlignRight)
+        self.flow_value_label = qt_import.QLabel('---')
         self.flow_value_label.setStyleSheet("font-size: 18px;"#font-weight: bold;"
                                                " color: #00f")
-        self.required_flow_label = qt_import.QLabel("Set to:")
+        self.required_flow_label = qt_import.QLabel("Set flow to:")
         self.required_flow = qt_import.QLineEdit()
         # TODO Check this, connect label text edited with emit signal to change 
         # pump flow. Maybe better define a variable to hold the value and emit 
@@ -80,17 +79,17 @@ class CreateSsxWidget(CreateTaskBase):
             0.1, 1000, 1, self.required_flow
         )
 
-        self.state_text_label = qt_import.QLabel("Pump status:")
+        self.state_text_label = qt_import.QLabel("Status:")
         self.state_text_value_label = qt_import.QLabel('---')
-        self.state_text_value_label.setAlignment(qt_import.Qt.AlignRight)
         self.state_text_value_label.setStyleSheet("font-size: 18px;")
 
-        self.pump_pressure_label = qt_import.QLabel("Pump pressure:")
+        self.pump_pressure_label = qt_import.QLabel("Pressure (bar):")
+        # self.pump_pressure_label.setAlignment(qt_import.Qt.AlignVCenter)
         self.pump_pressure_value_label = qt_import.QLabel()
-        self.pump_pressure_value_label.setAlignment(qt_import.Qt.AlignRight)
+        # self.pump_pressure_value_label.setAlignment(qt_import.Qt.AlignVCenter)
         self.pump_pressure_value_label.setStyleSheet("font-size: 18px;")
         
-        self.pump_start_button = qt_import.QPushButton('Start')        
+        self.pump_start_button = qt_import.QPushButton('Start')
         
 
 
@@ -98,16 +97,17 @@ class CreateSsxWidget(CreateTaskBase):
         _glayout.addWidget(self.flow_value_label, 0, 1)
         _glayout.addWidget(self.required_flow_label, 0, 2)
         _glayout.addWidget(self.required_flow, 0, 3)
-
+        _glayout.addWidget(self.pump_start_button, 0, 4, 2, 1) # span 2 rows, 1 column
+        self.pump_start_button.setMinimumHeight(self.pump_start_button.sizeHint().height() * 2)  # Set the height to two rows
 
 
 
         _glayout.addWidget(self.pump_pressure_label, 1, 0)
         _glayout.addWidget(self.pump_pressure_value_label, 1, 1)
         
-        _glayout.addWidget(self.state_text_label, 2, 0)
-        _glayout.addWidget(self.state_text_value_label, 2, 1)
-        _glayout.addWidget(self.pump_start_button, 2, 2)
+        _glayout.addWidget(self.state_text_label, 1, 2)
+        _glayout.addWidget(self.state_text_value_label, 1, 3)
+
         
         
         _glayout.setSpacing(5)
@@ -118,16 +118,16 @@ class CreateSsxWidget(CreateTaskBase):
         _glayout_pid = qt_import.QGridLayout()        
         self._pid_widget.setLayout(_glayout_pid)
 
-        self.target_presure_label = qt_import.QLabel("Target pressure:")
+        self.target_presure_label = qt_import.QLabel("Target (bar):")
         # TODO Add a qdoublevalidator for pressure range
         self.target_presure_value = qt_import.QLineEdit('12')
         
 
-        self.max_flow_label = qt_import.QLabel("Max flow:")
+        self.max_flow_label = qt_import.QLabel(u"Max flow (\u00B5l/min):")
         self.max_flow_value = qt_import.QLineEdit('3')
 
         self.kp_label = qt_import.QLabel("Kp:")
-        self.kp_value = qt_import.QLineEdit("0.01")
+        self.kp_value = qt_import.QLineEdit("10")
 
         self.flow_control_checkbox = qt_import.QCheckBox('Flow Control')
 
@@ -150,21 +150,21 @@ class CreateSsxWidget(CreateTaskBase):
         _glayout2 = qt_import.QGridLayout()
         self._sample_widget.setLayout(_glayout2)
 
-        self.sample_name_label = qt_import.QLabel("Sample:")
+        self.sample_name_label = qt_import.QLabel("Name:")
         self.sample_name = qt_import.QLineEdit()
 
-        self.sample_volume_label = qt_import.QLabel("Volume:")
+        self.sample_volume_label = qt_import.QLabel(u"Volume (\u00B5l):")
         self.sample_volume = qt_import.QLineEdit()
 
-        self.reservoir_label = qt_import.QLabel("Reservoir:")
+        self.reservoir_label = qt_import.QLabel(u"Reservoir (\u00B5l):")
 
         self.reservoir = qt_import.QComboBox()
-        self.reservoir.addItems([u"40 \u00B5l", u"20 \u00B5l"])
+        self.reservoir.addItems(["40", "20"])
 
-        self.capillary_id_label = qt_import.QLabel("Capillary:")
+        self.capillary_id_label = qt_import.QLabel(u"Capillary (\u00B5m):")
 
         self.capillary_id = qt_import.QComboBox()
-        self.capillary_id.addItems([u"50 \u00B5m", u"100 \u00B5m"])
+        self.capillary_id.addItems(["50", "100"])
 
         #Angstrom u"\u212B"
         #Mu u"\u00B5"
@@ -174,8 +174,8 @@ class CreateSsxWidget(CreateTaskBase):
 
         # TODO Add box for pressure target
 
-        self.jet_speed_label = qt_import.QLabel(u"Jet Speed: ")
-        self.jet_speed_value = qt_import.QLabel(u"0 \u00B5m/s")
+        self.jet_speed_label = qt_import.QLabel(u"Jet Speed (\u00B5m/s):")
+        self.jet_speed_value = qt_import.QLabel("0")
 
 
 
